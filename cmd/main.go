@@ -2,9 +2,11 @@ package main
 
 import (
 	"cli-todo-app/internal/store"
+	"flag"
 	"fmt"
 	"log/slog"
 	"os"
+	"strconv"
 )
 
 const storageType = "sqlite"
@@ -21,7 +23,7 @@ func main() {
 
 	if os.Args[1] == "help" {
 		slog.Info("Usage: <program> <args>")
-		slog.Info("Available commands: help, create, get, delete, update")
+		slog.Info("Available commands: help, create, get, update")
 		return
 	}
 
@@ -68,7 +70,65 @@ func main() {
 		return
 	}
 
-	if os.Args[1] == "get" || os.Args[1] == "delete" || os.Args[1] == "update" {
+	if os.Args[1] == "update" {
+		slog.Debug("Updating a task...")
+
+		if len(os.Args) < 3 {
+			slog.Error("Task ID is required for update")
+			return
+		}
+
+		id, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			slog.Error("invalid task ID", "error", err)
+			return
+		}
+
+		task, err := store.ReadTask(storageType, id)
+		if err != nil {
+			slog.Error("failed to read task", "storage", storageType, "error", err)
+			return
+		}
+
+		updateCmd := flag.NewFlagSet("update", flag.ContinueOnError)
+		name := updateCmd.String("name", "", "New task name")
+		description := updateCmd.String("description", "", "New task description")
+		state := updateCmd.String("state", "", "New task state")
+
+		if err := updateCmd.Parse(os.Args[3:]); err != nil {
+			slog.Error("invalid update flags", "error", err)
+			return
+		}
+
+		changed := false
+		if *name != "" {
+			task.Name = *name
+			changed = true
+		}
+		if *description != "" {
+			task.Description = *description
+			changed = true
+		}
+		if *state != "" {
+			task.State = *state
+			changed = true
+		}
+
+		if !changed {
+			slog.Error("no update fields provided; use --name/--description/--state")
+			return
+		}
+
+		if err := store.UpdateTask(storageType, *task); err != nil {
+			slog.Error("failed to update task", "storage", storageType, "error", err)
+			return
+		}
+		slog.Info("Updated task", "id", id)
+		return
+	}
+
+	if os.Args[1] == "get" {
+		slog.Debug("Listing tasks")
 		tasks, err := store.ReadTasks(storageType)
 		if err != nil {
 			slog.Error("failed to read tasks", "storage", storageType, "error", err)
@@ -80,7 +140,6 @@ func main() {
 			return
 		}
 
-		slog.Debug("Listing tasks")
 		fmt.Printf("%-4s  %-20s  %-10s  %s\n", "ID", "Name", "State", "Description")
 		fmt.Println("----  --------------------  ----------  -----------")
 		for _, task := range tasks {

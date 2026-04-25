@@ -2,6 +2,7 @@ package store
 
 import (
 	"database/sql"
+	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -80,4 +81,41 @@ func readTasksFromSQLite() ([]Task, error) {
 	}
 
 	return tasks, nil
+}
+
+func readTaskFromSQLite(id int) (*Task, error) {
+	db, err := openSQLiteDB()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	row := db.QueryRow(`SELECT id, name, description, state FROM tasks WHERE id = ?`, id)
+	var task Task
+	err = row.Scan(&task.ID, &task.Name, &task.Description, &task.State)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("task with ID %d not found", id)
+		}
+		return nil, err
+	}
+
+	return &task, nil
+}
+
+func updateTaskInSQLite(task Task) error {
+	db, err := openSQLiteDB()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	_, err = db.Exec(
+		`UPDATE tasks SET name = ?, description = ?, state = ? WHERE id = ?`,
+		task.Name,
+		task.Description,
+		task.State,
+		task.ID,
+	)
+	fmt.Printf("UPDATE tasks SET name = %s, description = %s, state = %s WHERE id = %d\n", task.Name, task.Description, task.State, task.ID)
+	return err
 }
