@@ -1,79 +1,32 @@
 package main
 
 import (
-	"encoding/json"
+	"cli-todo-app/internal/store"
 	"fmt"
+	"log/slog"
 	"os"
 )
 
-type Task struct {
-	ID          int    `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	State       string `json:"state"`
-}
-
-type JsonObject struct {
-	Tasks []Task `json:"tasks"`
-}
-
-func readJSONFromFile(filePath string) (JsonObject, error) {
-	var jsonObj JsonObject
-	defaultJSON := []byte("{\n  \"tasks\": []\n}\n")
-
-	bytes, err := os.ReadFile(filePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			err = os.WriteFile(filePath, defaultJSON, 0o644)
-			if err != nil {
-				return jsonObj, err
-			}
-
-			return JsonObject{Tasks: []Task{}}, nil
-		}
-
-		return jsonObj, err
-	}
-
-	err = json.Unmarshal(bytes, &jsonObj)
-	if err != nil {
-		return jsonObj, err
-	}
-
-	return jsonObj, nil
-}
-
-func writeJSONToFile(filePath string, jsonObj JsonObject) error {
-	bytes, err := json.MarshalIndent(jsonObj, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(filePath, bytes, 0o644)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+const storageType = "sqlite"
 
 func main() {
-	println("Hello, World!")
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	slog.SetDefault(logger)
 
 	if len(os.Args) < 2 {
-		println("Usage: <program> <args>")
-		println("Use help for more info")
+		slog.Info("Usage: <program> <args>")
+		slog.Info("Use help for more info")
 		return
 	}
 
 	if os.Args[1] == "help" {
-		println("Usage: <program> <args>")
-		println("Available commands: help, create, get, delete, update")
+		slog.Info("Usage: <program> <args>")
+		slog.Info("Available commands: help, create, get, delete, update")
 		return
 	}
 
 	if os.Args[1] == "create" {
-		// println("Creating a new task...")
+		slog.Debug("Creating a new task...")
 
 		name := "Unnamed Task"
 		description := ""
@@ -91,45 +44,46 @@ func main() {
 			state = os.Args[4]
 		}
 
-		jsonObj, err := readJSONFromFile("store.json")
+		tasks, err := store.ReadTasks(storageType)
 		if err != nil {
-			fmt.Println("Failed to read JSON file:", err)
+			slog.Error("failed to read tasks", "storage", storageType, "error", err)
 			return
 		}
 
-		jsonObj.Tasks = append(jsonObj.Tasks, Task{
-			ID:          len(jsonObj.Tasks) + 1,
+		nextID := len(tasks) + 1
+
+		err = store.WriteTask(storageType, store.Task{
+			ID:          nextID,
 			Name:        name,
 			Description: description,
 			State:       state,
 		})
-
-		err = writeJSONToFile("store.json", jsonObj)
 		if err != nil {
-			fmt.Println("Failed to write JSON file:", err)
+			slog.Error("failed to write task", "storage", storageType, "error", err)
 			return
 		}
 
-		fmt.Printf("Created task: %s:%d\n", jsonObj.Tasks[len(jsonObj.Tasks)-1].Name, jsonObj.Tasks[len(jsonObj.Tasks)-1].ID)
-		// fmt.Printf("Loaded %d tasks from store.json\n", len(jsonObj.Tasks))
+		slog.Info("Created task", "name", name, "id", nextID)
+		// fmt.Printf("Loaded %d tasks from store.json\n", len(tasks.Tasks))
 		return
 	}
 
 	if os.Args[1] == "get" || os.Args[1] == "delete" || os.Args[1] == "update" {
-		jsonObj, err := readJSONFromFile("store.json")
+		tasks, err := store.ReadTasks(storageType)
 		if err != nil {
-			fmt.Println("Failed to read JSON file:", err)
+			slog.Error("failed to read tasks", "storage", storageType, "error", err)
 			return
 		}
 
-		if len(jsonObj.Tasks) == 0 {
-			fmt.Println("No tasks found.")
+		if len(tasks) == 0 {
+			slog.Info("No tasks found.")
 			return
 		}
 
+		slog.Debug("Listing tasks")
 		fmt.Printf("%-4s  %-20s  %-10s  %s\n", "ID", "Name", "State", "Description")
 		fmt.Println("----  --------------------  ----------  -----------")
-		for _, task := range jsonObj.Tasks {
+		for _, task := range tasks {
 			fmt.Printf("%-4d  %-20s  %-10s  %s\n", task.ID, task.Name, task.State, task.Description)
 		}
 		return
@@ -138,11 +92,7 @@ func main() {
 	firstArg := os.Args[1]
 
 	println("First argument:", firstArg)
-	// TODO: setup cli commands
-
-	// TODO: setup data storage
-
-	// TODO: setup logging
+	// TODO: setup data storage (SQLite)
 
 	// TODO: structure the project properly
 }
