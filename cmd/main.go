@@ -122,7 +122,16 @@ func main() {
 			return
 		}
 
-		fmt.Printf("%+v\n", jsonObj)
+		if len(jsonObj.Tasks) == 0 {
+			fmt.Println("No tasks found.")
+			return
+		}
+
+		fmt.Printf("%-4s  %-20s  %-10s  %s\n", "ID", "Name", "State", "Description")
+		fmt.Println("----  --------------------  ----------  -----------")
+		for _, task := range jsonObj.Tasks {
+			fmt.Printf("%-4d  %-20s  %-10s  %s\n", task.ID, task.Name, task.State, task.Description)
+		}
 		return
 	}
 
