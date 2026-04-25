@@ -1,0 +1,58 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "name": "",
+      "description": "New Task",
+      "state": "pending"
+    },
+    {
+      "id": 2,
+      "name": "",
+      "description": "New Task",
+      "state": "pending"
+    },
+    {
+      "id": 3,
+      "name": "",
+      "description": "New Task",
+      "state": "pending"
+    },
+    {
+      "id": 4,
+      "name": "",
+      "description": "New Task",
+      "state": "pending"
+    },
+    {
+      "id": 5,
+      "name": "",
+      "description": "New Task",
+      "state": "pending"
+    },
+    {
+      "id": 6,
+      "name": "",
+      "description": "New Task",
+      "state": "pending"
+    },
+    {
+      "id": 7,
+      "name": "Unnamed Task",
+      "description": "New Task",
+      "state": "pending"
+    },
+    {
+      "id": 8,
+      "name": "verycoolname!",
+      "description": "veryinformativedescription",
+      "state": "Active"
+    },
+    {
+      "id": 9,
+      "name": "verycoolname!",
+      "description": "very informative description",
+      "state": "Active"
+    }
+  ]
+}
