@@ -2,14 +2,13 @@ package main
 
 import (
 	"cli-todo-app/internal/store"
+	"cli-todo-app/internal/todo"
 	"flag"
 	"fmt"
 	"log/slog"
 	"os"
 	"strconv"
 )
-
-const storageType = "sqlite"
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
@@ -46,27 +45,7 @@ func main() {
 			state = os.Args[4]
 		}
 
-		tasks, err := store.ReadTasks(storageType)
-		if err != nil {
-			slog.Error("failed to read tasks", "storage", storageType, "error", err)
-			return
-		}
-
-		nextID := len(tasks) + 1
-
-		err = store.WriteTask(storageType, store.Task{
-			ID:          nextID,
-			Name:        name,
-			Description: description,
-			State:       state,
-		})
-		if err != nil {
-			slog.Error("failed to write task", "storage", storageType, "error", err)
-			return
-		}
-
-		slog.Info("Created task", "name", name, "id", nextID)
-		// fmt.Printf("Loaded %d tasks from store.json\n", len(tasks.Tasks))
+		todo.CreateTask(name, description, state)
 		return
 	}
 
@@ -84,9 +63,9 @@ func main() {
 			return
 		}
 
-		task, err := store.ReadTask(storageType, id)
+		task, err := store.ReadTask(todo.StorageType, id)
 		if err != nil {
-			slog.Error("failed to read task", "storage", storageType, "error", err)
+			slog.Error("failed to read task", "storage", todo.StorageType, "error", err)
 			return
 		}
 
@@ -119,8 +98,8 @@ func main() {
 			return
 		}
 
-		if err := store.UpdateTask(storageType, *task); err != nil {
-			slog.Error("failed to update task", "storage", storageType, "error", err)
+		if err := store.UpdateTask(todo.StorageType, *task); err != nil {
+			slog.Error("failed to update task", "storage", todo.StorageType, "error", err)
 			return
 		}
 		slog.Info("Updated task", "id", id)
@@ -129,9 +108,9 @@ func main() {
 
 	if os.Args[1] == "get" {
 		slog.Debug("Listing tasks")
-		tasks, err := store.ReadTasks(storageType)
+		tasks, err := store.ReadTasks(todo.StorageType)
 		if err != nil {
-			slog.Error("failed to read tasks", "storage", storageType, "error", err)
+			slog.Error("failed to read tasks", "storage", todo.StorageType, "error", err)
 			return
 		}
 
@@ -151,7 +130,4 @@ func main() {
 	firstArg := os.Args[1]
 
 	println("First argument:", firstArg)
-	// TODO: setup data storage (SQLite)
-
-	// TODO: structure the project properly
 }
