@@ -9,7 +9,7 @@ import (
 const StorageType = "sqlite"
 
 func CreateTask(name string, description string, state string) {
-	tasks, err := store.ReadTasks(StorageType)
+	tasks, err := store.ReadTasks(StorageType, store.TaskFilter{})
 	if err != nil {
 		slog.Error("failed to read tasks", "storage", StorageType, "error", err)
 		return
@@ -31,8 +31,8 @@ func CreateTask(name string, description string, state string) {
 	slog.Info("Created task", "name", name, "id", nextID)
 }
 
-func GetTasks() {
-	tasks, err := store.ReadTasks(StorageType)
+func GetTasks(filter store.TaskFilter) {
+	tasks, err := store.ReadTasks(StorageType, filter)
 	if err != nil {
 		slog.Error("failed to read tasks", "storage", StorageType, "error", err)
 		return

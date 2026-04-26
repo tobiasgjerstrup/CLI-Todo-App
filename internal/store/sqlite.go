@@ -52,14 +52,32 @@ func writeTaskToSQLite(task Task) error {
 	return nil
 }
 
-func readTasksFromSQLite() ([]Task, error) {
+func readTasksFromSQLite(filter TaskFilter) ([]Task, error) {
 	db, err := openSQLiteDB()
 	if err != nil {
 		return nil, err
 	}
 	defer db.Close()
 
-	rows, err := db.Query(`SELECT id, name, description, state FROM tasks ORDER BY id ASC`)
+	query := "SELECT id, name, description, state FROM tasks WHERE 1=1"
+	args := make([]any, 0)
+
+	if filter.Search != "" {
+		query += " AND name LIKE ?"
+		args = append(args, "%"+filter.Search+"%")
+	}
+	if filter.State != "" {
+		query += " AND state = ?"
+		args = append(args, filter.State)
+	}
+	if filter.ID != nil {
+		query += " AND id = ?"
+		args = append(args, *filter.ID)
+	}
+
+	query += " ORDER BY id ASC"
+	rows, err := db.Query(query, args...)
+
 	if err != nil {
 		return nil, err
 	}

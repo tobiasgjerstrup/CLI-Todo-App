@@ -32,5 +32,4 @@
 # .vscode/
 
 # custom ignore rules
-store.json
 store.db

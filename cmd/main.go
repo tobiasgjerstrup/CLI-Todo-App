@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cli-todo-app/internal/store"
 	"cli-todo-app/internal/todo"
 	"flag"
 	"log/slog"
@@ -61,12 +62,12 @@ func main() {
 			return
 		}
 
-		updateCmd := flag.NewFlagSet("update", flag.ContinueOnError)
-		name := updateCmd.String("name", "", "New task name")
-		description := updateCmd.String("description", "", "New task description")
-		state := updateCmd.String("state", "", "New task state")
+		flags := flag.NewFlagSet("update", flag.ContinueOnError)
+		name := flags.String("name", "", "New task name")
+		description := flags.String("description", "", "New task description")
+		state := flags.String("state", "", "New task state")
 
-		if err := updateCmd.Parse(os.Args[3:]); err != nil {
+		if err := flags.Parse(os.Args[3:]); err != nil {
 			slog.Error("invalid update flags", "error", err)
 			return
 		}
@@ -77,7 +78,25 @@ func main() {
 
 	if os.Args[1] == "get" {
 		slog.Debug("Listing tasks")
-		todo.GetTasks()
+		flags := flag.NewFlagSet("get", flag.ContinueOnError)
+		search := flags.String("search", "", "Search")
+		state := flags.String("state", "active", "Search State")
+		id := flags.Int("id", -1, "Search id")
+
+		if err := flags.Parse(os.Args[2:]); err != nil {
+			slog.Error("invalid get flags", "error", err)
+			return
+		}
+
+		filter := store.TaskFilter{
+			Search: *search,
+			State:  *state,
+		}
+		if *id >= 0 {
+			filter.ID = id
+		}
+
+		todo.GetTasks(filter)
 		return
 	}
 
