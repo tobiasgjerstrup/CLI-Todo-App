@@ -2,6 +2,7 @@ package todo
 
 import (
 	"cli-todo-app/internal/store"
+	"fmt"
 	"log/slog"
 )
 
@@ -31,7 +32,22 @@ func CreateTask(name string, description string, state string) {
 }
 
 func GetTasks() {
+	tasks, err := store.ReadTasks(StorageType)
+	if err != nil {
+		slog.Error("failed to read tasks", "storage", StorageType, "error", err)
+		return
+	}
 
+	if len(tasks) == 0 {
+		slog.Info("No tasks found.")
+		return
+	}
+
+	fmt.Printf("%-4s  %-20s  %-10s  %s\n", "ID", "Name", "State", "Description")
+	fmt.Println("----  --------------------  ----------  -----------")
+	for _, task := range tasks {
+		fmt.Printf("%-4d  %-20s  %-10s  %s\n", task.ID, task.Name, task.State, task.Description)
+	}
 }
 
 func UpdateTask(id int, name *string, description *string, state *string) {

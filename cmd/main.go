@@ -1,10 +1,8 @@
 package main
 
 import (
-	"cli-todo-app/internal/store"
 	"cli-todo-app/internal/todo"
 	"flag"
-	"fmt"
 	"log/slog"
 	"os"
 	"strconv"
@@ -79,22 +77,7 @@ func main() {
 
 	if os.Args[1] == "get" {
 		slog.Debug("Listing tasks")
-		tasks, err := store.ReadTasks(todo.StorageType)
-		if err != nil {
-			slog.Error("failed to read tasks", "storage", todo.StorageType, "error", err)
-			return
-		}
-
-		if len(tasks) == 0 {
-			slog.Info("No tasks found.")
-			return
-		}
-
-		fmt.Printf("%-4s  %-20s  %-10s  %s\n", "ID", "Name", "State", "Description")
-		fmt.Println("----  --------------------  ----------  -----------")
-		for _, task := range tasks {
-			fmt.Printf("%-4d  %-20s  %-10s  %s\n", task.ID, task.Name, task.State, task.Description)
-		}
+		todo.GetTasks()
 		return
 	}
 
