@@ -4,24 +4,51 @@ import (
 	"cli-todo-app/internal/store"
 	"cli-todo-app/internal/todo"
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"strconv"
 )
+
+func printHelp(program string) {
+	program = filepath.Base(program)
+
+	fmt.Printf("Usage:\n")
+	fmt.Printf("  %s <command> [arguments]\n\n", program)
+	fmt.Println("Commands:")
+	fmt.Println("  help                               Show this help message")
+	fmt.Println("  create [name] [description] [state]")
+	fmt.Println("                                     Create a new task")
+	fmt.Println("  get [--search text] [--state s] [--id n]")
+	fmt.Println("                                     List tasks using optional filters")
+	fmt.Println("  update <id> [--name n] [--description d] [--state s]")
+	fmt.Println("                                     Update fields for a task")
+	fmt.Println()
+	fmt.Println("Defaults:")
+	fmt.Println("  create state: pending")
+	fmt.Println("  get state: active")
+	fmt.Println("  get id: -1 (disabled)")
+	fmt.Println()
+	fmt.Println("Examples:")
+	fmt.Printf("  %s create \"Buy milk\" \"2%% from store\" pending\n", program)
+	fmt.Printf("  %s get --search milk\n", program)
+	fmt.Printf("  %s get --state active\n", program)
+	fmt.Printf("  %s get --id 3\n", program)
+	fmt.Printf("  %s update 3 --state done\n", program)
+}
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	slog.SetDefault(logger)
 
 	if len(os.Args) < 2 {
-		slog.Info("Usage: <program> <args>")
-		slog.Info("Use help for more info")
+		printHelp(os.Args[0])
 		return
 	}
 
-	if os.Args[1] == "help" {
-		slog.Info("Usage: <program> <args>")
-		slog.Info("Available commands: help, create, get, update")
+	if os.Args[1] == "help" || os.Args[1] == "-h" || os.Args[1] == "--help" {
+		printHelp(os.Args[0])
 		return
 	}
 
@@ -100,7 +127,6 @@ func main() {
 		return
 	}
 
-	firstArg := os.Args[1]
-
-	println("First argument:", firstArg)
+	slog.Error("unknown command", "command", os.Args[1])
+	printHelp(os.Args[0])
 }
