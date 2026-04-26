@@ -63,12 +63,6 @@ func main() {
 			return
 		}
 
-		task, err := store.ReadTask(todo.StorageType, id)
-		if err != nil {
-			slog.Error("failed to read task", "storage", todo.StorageType, "error", err)
-			return
-		}
-
 		updateCmd := flag.NewFlagSet("update", flag.ContinueOnError)
 		name := updateCmd.String("name", "", "New task name")
 		description := updateCmd.String("description", "", "New task description")
@@ -79,30 +73,7 @@ func main() {
 			return
 		}
 
-		changed := false
-		if *name != "" {
-			task.Name = *name
-			changed = true
-		}
-		if *description != "" {
-			task.Description = *description
-			changed = true
-		}
-		if *state != "" {
-			task.State = *state
-			changed = true
-		}
-
-		if !changed {
-			slog.Error("no update fields provided; use --name/--description/--state")
-			return
-		}
-
-		if err := store.UpdateTask(todo.StorageType, *task); err != nil {
-			slog.Error("failed to update task", "storage", todo.StorageType, "error", err)
-			return
-		}
-		slog.Info("Updated task", "id", id)
+		todo.UpdateTask(id, name, description, state)
 		return
 	}
 

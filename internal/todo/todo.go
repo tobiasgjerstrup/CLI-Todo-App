@@ -34,6 +34,35 @@ func GetTasks() {
 
 }
 
-func UpdateTask() {
+func UpdateTask(id int, name *string, description *string, state *string) {
+	task, err := store.ReadTask(StorageType, id)
+	if err != nil {
+		slog.Error("failed to read task", "storage", StorageType, "error", err)
+		return
+	}
 
+	changed := false
+	if *name != "" {
+		task.Name = *name
+		changed = true
+	}
+	if *description != "" {
+		task.Description = *description
+		changed = true
+	}
+	if *state != "" {
+		task.State = *state
+		changed = true
+	}
+
+	if !changed {
+		slog.Error("no update fields provided; use --name/--description/--state")
+		return
+	}
+
+	if err := store.UpdateTask(StorageType, *task); err != nil {
+		slog.Error("failed to update task", "storage", StorageType, "error", err)
+		return
+	}
+	slog.Info("Updated task", "id", id)
 }
