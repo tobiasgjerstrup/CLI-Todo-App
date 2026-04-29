@@ -27,7 +27,7 @@ func printHelp(program string) {
 	fmt.Println()
 	fmt.Println("Defaults:")
 	fmt.Println("  create state: pending")
-	fmt.Println("  get state: active")
+	fmt.Println("  get state: '' (anything but removed and completed)")
 	fmt.Println("  get id: -1 (disabled)")
 	fmt.Println()
 	fmt.Println("Examples:")
@@ -107,7 +107,7 @@ func main() {
 		slog.Debug("Listing tasks")
 		flags := flag.NewFlagSet("get", flag.ContinueOnError)
 		search := flags.String("search", "", "Search")
-		state := flags.String("state", "active", "Search State")
+		state := flags.String("state", "", "Search State")
 		id := flags.Int("id", -1, "Search id")
 
 		if err := flags.Parse(os.Args[2:]); err != nil {
@@ -117,7 +117,9 @@ func main() {
 
 		filter := store.TaskFilter{
 			Search: *search,
-			State:  *state,
+		}
+		if *state != "" {
+			filter.State = *state
 		}
 		if *id >= 0 {
 			filter.ID = id

@@ -69,6 +69,8 @@ func readTasksFromSQLite(filter TaskFilter) ([]Task, error) {
 	if filter.State != "" {
 		query += " AND state = ?"
 		args = append(args, filter.State)
+	} else {
+		query += " AND state != 'completed' AND state != 'removed'"
 	}
 	if filter.ID != nil {
 		query += " AND id = ?"
