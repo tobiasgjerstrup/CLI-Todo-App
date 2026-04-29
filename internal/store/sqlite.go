@@ -76,6 +76,9 @@ func readTasksFromSQLite(filter TaskFilter) ([]Task, error) {
 		query += " AND id = ?"
 		args = append(args, *filter.ID)
 	}
+	if filter.Where != "" {
+		query += " " + filter.Where
+	}
 
 	query += " ORDER BY id ASC"
 	rows, err := db.Query(query, args...)

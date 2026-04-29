@@ -1,6 +1,7 @@
 package main
 
 import (
+	InputParser "cli-todo-app/internal/parser"
 	"cli-todo-app/internal/store"
 	"cli-todo-app/internal/todo"
 	"flag"
@@ -109,6 +110,7 @@ func main() {
 		search := flags.String("search", "", "Search")
 		state := flags.String("state", "", "Search State")
 		id := flags.Int("id", -1, "Search id")
+		where := flags.String("where", "", "where clause")
 
 		if err := flags.Parse(os.Args[2:]); err != nil {
 			slog.Error("invalid get flags", "error", err)
@@ -123,6 +125,13 @@ func main() {
 		}
 		if *id >= 0 {
 			filter.ID = id
+		}
+		if *where != "" {
+			where, err := InputParser.Parse(where)
+			if err != nil {
+				slog.Error("something went wrong parsing where clause", "error", err)
+			}
+			filter.Where = where
 		}
 
 		todo.GetTasks(filter)

@@ -14,6 +14,7 @@ type Task struct {
 type TaskFilter struct {
 	Search string
 	State  string
+	Where  string
 	ID     *int
 }
 
